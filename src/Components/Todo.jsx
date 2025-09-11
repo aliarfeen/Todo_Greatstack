@@ -4,27 +4,61 @@ import TodoItems from "./TodoItems";
 import { data } from "autoprefixer";
 
 const Todo = () => {
-// todo-list logic
+  // todo logic
 
-const [todoList,setTodoList] = useState(localStorage.getItem("todos") || [])
+  const [todoList, setTodoList] = useState(
+    JSON.parse(localStorage.getItem("todos")) || []
+  );
 
-// useRef is used to get the text input 
-// doc said: useRef is a React Hook that lets you reference a value that's not needed for rendering. const ref = useRef(initialValue).
-const inputRef =useRef();
-const  add = function() {
-  const inputText = inputRef.current.value.trim();
-  if(!inputText){
-    alert("enter valid input")
-    return null;
+  // useRef is used to get the text input
+  // doc said: useRef is a React Hook that lets you reference a value that's not needed for rendering. const ref = useRef(initialValue).
+  const inputRef = useRef();
+  const add = () => {
+    const inputText = inputRef.current.value.trim();
+    if (!inputText) {
+      alert("enter valid input");
+      return null;
+    }
+    const newTodo = {
+      id: Date.now(),
+      text: inputText,
+      data: Date().toLocaleString().split("GMT")[0],
+      isComplete: false,
+    };
+    setTodoList((todoList) => [...todoList, newTodo]);
+    inputRef.current.value = "";
+  };
+
+  //delete fun
+  
+  const deleteTodo = (id) => {
+    setTodoList((prvTodos) => {
+      return prvTodos.filter((todo) => todo.id !== id);
+    });
+  };
+
+  //toggle fun
+  const toggle = (id)=>{
+    setTodoList(
+      (prev) =>{
+        return prev.map(
+          (item)=>{
+            if(item.id === id){
+              return { ...item, isComplete: !item.isComplete }
+            }
+            return item;
+          }
+        )
+      }
+    )
   }
-  const newTodo ={
-    id: date.now(),
-    title: inputText,
-    data: date.now(),
-    isComplete: false,
-  }
+  //react doc said
+  //useEffect is a React Hook that lets you synchronize a component with an external system. useEffect(setup, dependencies?) Reference.
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todoList));
+  }, [todoList]);
 
-}
+  /// rendering TODO app
   return (
     <div
       className="bg-white place-self-center w-11/12 max-w-md min-h-[550px] flex
@@ -54,7 +88,18 @@ const  add = function() {
 
       {/*------------todo list rendaring-------------*/}
       <div>
-       
+        {todoList.map((item, index) => {
+          return (
+            <TodoItems
+              key={index}
+              text={item.text}
+              id={item.id}
+              isComplete={item.isComplete}
+              deleteTodo={deleteTodo}
+              toggle={toggle}
+            />
+          );
+        })}
       </div>
     </div>
   );
